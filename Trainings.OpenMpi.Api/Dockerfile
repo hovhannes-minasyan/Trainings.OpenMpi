@@ -8,6 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Trainings.OpenMpi.Api/Trainings.OpenMpi.Api.csproj", "Trainings.OpenMpi.Api/"]
+COPY ["Trainings.OpenMpi.Dal/Trainings.OpenMpi.Dal.csproj", "Trainings.OpenMpi.Dal/"]
 RUN dotnet restore "Trainings.OpenMpi.Api/Trainings.OpenMpi.Api.csproj"
 COPY . .
 WORKDIR "/src/Trainings.OpenMpi.Api"
