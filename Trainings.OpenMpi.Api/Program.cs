@@ -10,7 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTrainingDb();
-//builder.Services.AddTransient<IStartupFilter, TempStartupFilter>();
+builder.Services.AddTransient<IStartupFilter, TempStartupFilter>();
 
 var app = builder.Build();
 
