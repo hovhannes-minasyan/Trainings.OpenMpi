@@ -2,6 +2,15 @@ using inOne.LoyaltySystem.Web.Api.StartupFilters;
 using Trainings.OpenMpi.Dal.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.ConfigureHostConfiguration(hostConfig =>
+{
+    hostConfig.SetBasePath(Directory.GetCurrentDirectory());
+    hostConfig.AddJsonFile("appsettings.json", optional: false);
+    hostConfig.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
+    hostConfig.AddEnvironmentVariables(prefix: "ASPNETCORE_");
+    hostConfig.AddCommandLine(args);
+});
+
 
 // Add services to the container.
 
