@@ -12,7 +12,6 @@ namespace inOne.LoyaltySystem.Web.Api.StartupFilters
             return builder =>
             {
                 using var context = builder.ApplicationServices.CreateScope().ServiceProvider.GetService<TrainingMpiDbContext>();
-                context.Database.EnsureDeleted();
                 context.Database.Migrate();
 
                 using var connection = context.Database.GetDbConnection() as NpgsqlConnection;
