@@ -14,6 +14,8 @@ services:
     ports:
       - '12000:80'
       - '12001:443'
+    networks:
+      - training-mpi-net
 
   db:
     environment:
