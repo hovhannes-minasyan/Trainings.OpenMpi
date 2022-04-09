@@ -16,8 +16,12 @@ namespace Trainings.OpenMpi.Dal.Extensions
             var provider = services.BuildServiceProvider();
             var configuration = provider.GetService<IConfiguration>();
 
+            var connectionString = configuration.GetConnectionString("TrainingMpiDbContext");
+            
+            Console.WriteLine($"CONNECTION STRING = {connectionString}");
+            
             services.AddDbContext<TrainingMpiDbContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("TrainingMpiDbContext"),
+                options.UseNpgsql(connectionString,
                 x => x.MigrationsAssembly("Trainings.OpenMpi.Dal"))
                 .UseSnakeCaseNamingConvention());
 
