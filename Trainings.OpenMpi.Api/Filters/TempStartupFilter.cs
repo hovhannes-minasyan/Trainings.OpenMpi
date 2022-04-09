@@ -11,14 +11,15 @@ namespace inOne.LoyaltySystem.Web.Api.StartupFilters
         {
             return builder =>
             {
-                using var context = builder.ApplicationServices.CreateScope().ServiceProvider.GetService<TrainingMpiDbContext>();
+                next(builder);
+
+                using var scope = builder.ApplicationServices.CreateScope();
+                using var context = scope.ServiceProvider.GetService<TrainingMpiDbContext>();
                 context.Database.Migrate();
 
                 using var connection = context.Database.GetDbConnection() as NpgsqlConnection;
                 connection.Open();
                 connection.ReloadTypes();
-
-                next(builder);
 
                 var user = new User
                 {
