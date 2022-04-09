@@ -4,6 +4,7 @@ services:
   training-mpi-api:
     image: training-mpi-api
     build:
+      context: ./
       dockerfile: ./Trainings.OpenMpi.Api/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

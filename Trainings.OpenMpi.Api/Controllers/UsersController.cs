@@ -19,6 +19,7 @@ namespace Trainings.OpenMpi.Api.Controllers
             this.context = context;
         }
 
+        [HttpPost]
         public async Task<ActionResult<User>> AddUserAsync(UserCreateModel model) 
         {
             var user = context.Users.Add(new User
