@@ -1,4 +1,9 @@
 using inOne.LoyaltySystem.Web.Api.StartupFilters;
+using Microsoft.AspNetCore.Authentication;
+using System.Net;
+using Trainings.OpenMpi.Api.Authentication;
+using Trainings.OpenMpi.Api.Hubs;
+using Trainings.OpenMpi.Api.Services;
 using Trainings.OpenMpi.Dal.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +25,25 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTrainingDb();
 builder.Services.AddTransient<IStartupFilter, TempStartupFilter>();
+builder.Services.AddSignalR();
+
+builder.Services.AddSingleton<ConnectionStorage>();
+
+builder.Services.AddScoped<GameService>();
+builder.Services.AddScoped<ConcurrencyGameService>();
+
+builder.Services.AddHostedService<BackgroundWorker>();
+builder.Services.AddSingleton<TasksCollection>();
+
+builder.Services.AddAuthentication(opt =>
+{
+    var scheme = AuthenticationSchemes.Basic.ToString();
+    opt.DefaultScheme = scheme;
+    opt.DefaultChallengeScheme = scheme;
+    opt.DefaultAuthenticateScheme = scheme;
+})
+.AddScheme<AuthenticationSchemeOptions, ClientBasicAuthenticationHandler>(AuthenticationSchemes.Basic.ToString(), _ => { });
+
 
 var app = builder.Build();
 
@@ -30,10 +54,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
+app.UseRouting();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<GameHub>("/gamehub");
 
 app.Run();

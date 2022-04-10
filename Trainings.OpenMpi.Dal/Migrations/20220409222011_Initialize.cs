@@ -9,6 +9,9 @@ namespace Trainings.OpenMpi.Dal.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:PostgresExtension:citext", ",,");
+
             migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
@@ -17,7 +20,8 @@ namespace Trainings.OpenMpi.Dal.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     first_name = table.Column<string>(type: "text", nullable: true),
                     last_name = table.Column<string>(type: "text", nullable: true),
-                    username = table.Column<string>(type: "text", nullable: true)
+                    username = table.Column<string>(type: "citext", nullable: true),
+                    password = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

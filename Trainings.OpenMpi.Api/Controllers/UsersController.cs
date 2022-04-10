@@ -9,7 +9,7 @@ namespace Trainings.OpenMpi.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
-    {      
+    {
         private readonly ILogger<UsersController> _logger;
         private readonly TrainingMpiDbContext context;
 
@@ -20,16 +20,18 @@ namespace Trainings.OpenMpi.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<User>> AddUserAsync(UserCreateModel model) 
+        public async Task<ActionResult<IEnumerable<User>>> AddUsersAsync(UserCreateModel[] models)
         {
-            var user = context.Users.Add(new User
+            var list = models.Select(model => new User
             {
                 FirstName = model.FirstName,
                 LastName = model.LastName,
-            }).Entity;
+            }).ToArray();
+
+            context.Users.AddRange(list);
             await context.SaveChangesAsync();
 
-            return user;
+            return list;
         }
 
         [HttpGet]

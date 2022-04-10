@@ -11,7 +11,7 @@ using Trainings.OpenMpi.Dal;
 namespace Trainings.OpenMpi.Dal.Migrations
 {
     [DbContext(typeof(TrainingMpiDbContext))]
-    [Migration("20220409142327_Initialize")]
+    [Migration("20220409222011_Initialize")]
     partial class Initialize
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,6 +21,7 @@ namespace Trainings.OpenMpi.Dal.Migrations
                 .HasAnnotation("ProductVersion", "6.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Trainings.OpenMpi.Dal.Entities.User", b =>
@@ -40,8 +41,12 @@ namespace Trainings.OpenMpi.Dal.Migrations
                         .HasColumnType("text")
                         .HasColumnName("last_name");
 
-                    b.Property<string>("Username")
+                    b.Property<string>("Password")
                         .HasColumnType("text")
+                        .HasColumnName("password");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("citext")
                         .HasColumnName("username");
 
                     b.HasKey("Id")
