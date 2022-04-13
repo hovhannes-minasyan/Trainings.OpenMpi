@@ -31,6 +31,7 @@ builder.Services.AddSingleton<ConnectionStorage>();
 
 builder.Services.AddScoped<GameService>();
 builder.Services.AddScoped<ConcurrencyGameService>();
+builder.Services.AddScoped<PipelineGameService>();
 
 builder.Services.AddHostedService<BackgroundWorker>();
 builder.Services.AddSingleton<TasksCollection>();

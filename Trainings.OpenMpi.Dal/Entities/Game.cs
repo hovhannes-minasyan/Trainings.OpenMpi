@@ -11,5 +11,7 @@ namespace Trainings.OpenMpi.Dal.Entities
         public GameType Type { get; set; }
 
         public ConcurrencyGame ConcurrencyGame { get; set; }
+        
+        public PipelineGame PipelineGame { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 {
     public enum GameType
     {
-        Concurrency
+        Concurrency,
+        Pipeline
     }
 }
