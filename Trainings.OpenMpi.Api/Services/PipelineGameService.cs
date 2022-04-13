@@ -11,6 +11,7 @@ namespace Trainings.OpenMpi.Api.Services
 {
     public class PipelineGameService : BaseGameService
     {
+        private static SemaphoreSlim semaphore = new SemaphoreSlim(1);
         public PipelineGameService(
             TrainingMpiDbContext dbContext, 
             ConnectionStorage connectionStorage, 
@@ -66,51 +67,58 @@ namespace Trainings.OpenMpi.Api.Services
 
         public async Task CompleteStepAsync(int playerId, decimal data) 
         {
-            var game = await dbContext.PipelineGames
-                .Include(a=>a.PipelineSteps)
-                .ThenInclude(a=>a.QuizQuestion)
-                .FirstOrDefaultAsync(a => a.Game.IsActive);
-            
-            var nextPlayer = connectionStorage.GetNextNeighborIfExists(playerId);
-            var prevPlayer = connectionStorage.GetPrevNeighborIfExists(playerId);
-            var myStep = game.PipelineSteps.First(a => a.UserId == playerId);
-
-            myStep.DataValue = data;
-
-            if (nextPlayer.HasValue) 
+            await semaphore.WaitAsync();
+            try 
             {
-                var nextStep = game.PipelineSteps.First(a => a.UserId == nextPlayer);
-                if (nextStep.State != PipelineState.Free) 
+                var game = await dbContext.PipelineGames
+                    .Include(a => a.PipelineSteps)
+                    .ThenInclude(a => a.QuizQuestion)
+                    .FirstOrDefaultAsync(a => a.Game.IsActive);
+
+                var nextPlayer = connectionStorage.GetNextNeighborIfExists(playerId);
+                var prevPlayer = connectionStorage.GetPrevNeighborIfExists(playerId);
+                var myStep = game.PipelineSteps.First(a => a.UserId == playerId);
+
+                myStep.DataValue = data;
+
+                if (nextPlayer.HasValue)
                 {
-                    await dbContext.SaveChangesAsync();
-                    myStep.State = PipelineState.WaitingToSend;
-                    return;
+                    var nextStep = game.PipelineSteps.First(a => a.UserId == nextPlayer);
+                    if (nextStep.State != PipelineState.Free)
+                    {
+                        await dbContext.SaveChangesAsync();
+                        myStep.State = PipelineState.WaitingToSend;
+                        return;
+                    }
+                    await SendTaskTo(nextStep, data);
                 }
-                await SendTaskTo(nextStep, data);
+
+                myStep.State = PipelineState.Free;
+
+                await dbContext.SaveChangesAsync();
+
+                if (prevPlayer == null)
+                {
+                    if (game.RoundsLeft == 0)
+                        return;
+
+                    game.RoundsLeft--;
+
+                    await SendTaskTo(myStep, random.Next(1000, 10000));
+                }
+                else
+                {
+                    var prevStep = game.PipelineSteps.First(a => a.UserId == prevPlayer);
+                    if (prevStep.State == PipelineState.Working)
+                        return;
+
+                    await hubContext.Clients.User(prevPlayer.ToString()).ResubmitPipelineStep();
+                }
             }
-
-            myStep.State = PipelineState.Free;
-
-            await dbContext.SaveChangesAsync();
-
-            if (prevPlayer == null) 
+            finally 
             {
-                if (game.RoundsLeft == 0)
-                    return;
-                
-                game.RoundsLeft--;
-
-                await SendTaskTo(myStep, random.Next(1000, 10000));
-            }
-            else 
-            {
-                var prevStep = game.PipelineSteps.First(a => a.UserId == prevPlayer);
-                if (prevStep.State == PipelineState.Working)
-                    return;
-
-                await hubContext.Clients.User(prevPlayer.ToString()).ResubmitPipelineStep();
-            }
-            
+                semaphore.Release();
+            }            
         }
 
         private async Task SendTaskTo(PipelineStep step, decimal data) 
