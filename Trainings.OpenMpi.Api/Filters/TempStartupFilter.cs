@@ -48,6 +48,12 @@ namespace inOne.LoyaltySystem.Web.Api.StartupFilters
                 context.Add(player);
             }
 
+            context.QuizQuestions.AddRange(Enumerable.Range(1, 100).Select(e => new QuizQuestion
+            {
+                Question = "Question" + e,
+                Result = e,
+            }));
+
             context.Add(user);
             context.SaveChanges();
         }
