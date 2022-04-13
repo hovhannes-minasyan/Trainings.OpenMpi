@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Trainings.OpenMpi.Api.Abstractions;
 using Trainings.OpenMpi.Api.Hubs;
 using Trainings.OpenMpi.Common;
 using Trainings.OpenMpi.Common.Enums;
@@ -8,21 +9,17 @@ using Trainings.OpenMpi.Dal.Entities;
 
 namespace Trainings.OpenMpi.Api.Services
 {
-    public class PipelineGameService
+    public class PipelineGameService : BaseGameService
     {
-        private static readonly  Random random =  new Random();
-        private readonly TrainingMpiDbContext dbContext;
-        private readonly ConnectionStorage connectionStorage;
-        private readonly IHubContext<GameHub, IHubClient> hubContext;
-
-        public PipelineGameService(TrainingMpiDbContext dbContext, ConnectionStorage connectionStorage, IHubContext<GameHub, IHubClient> hubContext)
+        public PipelineGameService(
+            TrainingMpiDbContext dbContext, 
+            ConnectionStorage connectionStorage, 
+            IHubContext<GameHub, IHubClient> hubContext) : 
+            base(dbContext, connectionStorage, hubContext)
         {
-            this.dbContext = dbContext;
-            this.connectionStorage = connectionStorage;
-            this.hubContext = hubContext;
         }
 
-        public async Task<Game> StartGameAsync() 
+        public override async Task<Game> CreateGameAsync() 
         {
             var playerCount = connectionStorage.PlayersCount;
 
@@ -41,6 +38,13 @@ namespace Trainings.OpenMpi.Api.Services
             dbContext.Games.Add(game);
             await dbContext.SaveChangesAsync();
             return game;
+        }
+
+        public override async Task StartGameAsync(Game game)
+        {
+            var firstPlayer = connectionStorage.GetIds().Min();
+            var step = await dbContext.PipelineSteps.FirstOrDefaultAsync(s => s.UserId == firstPlayer && s.PipelineGameId == game.Id);            
+            await SendTaskTo(step, random.Next(1000,10000));
         }
 
         private async Task<PipelineStep[]> CreateSteps() 
@@ -109,7 +113,7 @@ namespace Trainings.OpenMpi.Api.Services
             
         }
 
-        public async Task SendTaskTo(PipelineStep step, decimal data) 
+        private async Task SendTaskTo(PipelineStep step, decimal data) 
         {
             await hubContext.Clients
                 .User(step.UserId.ToString())

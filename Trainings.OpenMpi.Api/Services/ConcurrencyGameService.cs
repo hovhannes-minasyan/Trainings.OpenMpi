@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Trainings.OpenMpi.Api.Abstractions;
 using Trainings.OpenMpi.Api.Hubs;
 using Trainings.OpenMpi.Common;
 using Trainings.OpenMpi.Common.Enums;
@@ -8,19 +9,16 @@ using Trainings.OpenMpi.Dal.Entities;
 
 namespace Trainings.OpenMpi.Api.Services
 {
-    public class ConcurrencyGameService
+    public class ConcurrencyGameService : BaseGameService
     {
         private static SemaphoreSlim gameFinishedLock = new(1);
-        private readonly ConnectionStorage connectionStorage;
-        private readonly TrainingMpiDbContext dbContext;
-        private readonly IHubContext<GameHub, IHubClient> hubContext;
-        private static readonly Random random = new Random();
 
-        public ConcurrencyGameService(ConnectionStorage connectionStorage, TrainingMpiDbContext dbContext, IHubContext<GameHub, IHubClient> hubContext)
+        public ConcurrencyGameService(
+            ConnectionStorage connectionStorage, 
+            TrainingMpiDbContext dbContext, 
+            IHubContext<GameHub, IHubClient> hubContext) : 
+            base(dbContext, connectionStorage, hubContext)
         {
-            this.connectionStorage = connectionStorage;
-            this.dbContext = dbContext;
-            this.hubContext = hubContext;
         }
 
         public async Task<long?> SetValueGetNextAsync(int userId, long number)
@@ -61,7 +59,7 @@ namespace Trainings.OpenMpi.Api.Services
             return gameData[1].Round.AddCoeff;
         }
 
-        public async Task<Game> StartGameAsync()
+        public override async Task<Game> CreateGameAsync()
         {
             var count = connectionStorage.PlayersCount;
 
@@ -124,6 +122,21 @@ namespace Trainings.OpenMpi.Api.Services
                 GameId = gameId,
                 GameType = GameType.Concurrency,
             });
+        }
+
+        public override async Task StartGameAsync(Game game) 
+        {
+            var rounds = await dbContext.ConcurrencyGameRounds.Where(r => r.ConcurrencyGameId == game.Id).ToArrayAsync();
+            var data = rounds.GroupBy(r => r.UserId).Select(gr => new
+            {
+                Value = gr.Where(e => !e.IsFinished).OrderBy(e => e.OrderIndex).First().AddCoeff,
+                UserId = gr.Key
+            }).ToArray();
+
+            foreach (var row in data)
+            {
+                await hubContext.Clients.User(row.UserId.ToString()).ConcurrencyGameValueReceived(row.Value);
+            }
         }
     }
 }
