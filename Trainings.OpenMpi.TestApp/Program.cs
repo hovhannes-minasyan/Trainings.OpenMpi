@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Trainings.OpenMpi.TestApp;
+using Trainings.OpenMpi.TestApp.GameTests;
 
 Console.WriteLine("Hello, World!");
 
@@ -15,14 +16,14 @@ while (true)
 
     if (result == 1)
     {
-        var gameTest = new ConcurrencyGameTest();
-        gameTest.StartAsync().Wait();
+        var concurrencyGameTest = new ConcurrencyGameTest();
+        concurrencyGameTest.StartAsync(2).Wait();
         Console.ReadLine();
     }
     else if (result == 2)
     {
-        var controllerTest = new ControllerTest();
-        controllerTest.CreateGameAsync().Wait();
+        var pipelineGameTest = new PipelineGameTest();
+        pipelineGameTest.StartAsync(2).Wait();
     }
 }
 

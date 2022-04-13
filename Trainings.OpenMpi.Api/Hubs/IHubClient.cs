@@ -10,7 +10,7 @@ namespace Trainings.OpenMpi.Api.Hubs
 
         Task ConcurrencyGameValueReceived(long value);
 
-        Task GameEnded(GameEventMessage gameStartedMessage);
+        Task GameEnded();
 
 
         Task ResubmitPipelineStep();

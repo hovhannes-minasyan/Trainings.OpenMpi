@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Text;
 using Trainings.OpenMpi.Common;
 
-namespace Trainings.OpenMpi.TestApp
+namespace Trainings.OpenMpi.TestApp.GameTests
 {
     public class PlayerConcurrencyGame
     {
@@ -35,6 +35,11 @@ namespace Trainings.OpenMpi.TestApp
             connection.On("GameEnded", GameEnded);
         }
 
+        public Task DisconnectAsync()
+        {
+            return connection.StopAsync();
+        }
+
         public Task ConnectAsync()
         {
             return connection.StartAsync();
@@ -53,6 +58,7 @@ namespace Trainings.OpenMpi.TestApp
 
         private void GameEnded() 
         {
+            Console.WriteLine("Game Ended");
             collection.Add(id);
         }
 
@@ -60,6 +66,7 @@ namespace Trainings.OpenMpi.TestApp
         {
             Console.WriteLine($"{id}: Sending Starts");
             await Task.Delay(3000);
+            
             Console.WriteLine($"{id}:Sending {number + value}");
             await connection.SendAsync("SetConcurrencyGameValue", number + value);
         }

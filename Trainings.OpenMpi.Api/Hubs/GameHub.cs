@@ -38,9 +38,8 @@ namespace Trainings.OpenMpi.Api.Hubs
 
         public async Task SetConcurrencyGameValue(long value)
         {
-            var outcome = await concurrencyGameService.SetValueGetNextAsync(UserId, value);
-            if (outcome.HasValue)
-                await Clients.All.SetConcurrencyGameState(outcome.Value);
+            await concurrencyGameService.SetValueGetNextAsync(UserId, value);
+            
         }
 
         public async Task CompletePipelineGameStep(decimal data) 

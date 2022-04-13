@@ -21,7 +21,7 @@ namespace Trainings.OpenMpi.Api.Services
         {
         }
 
-        public async Task<long?> SetValueGetNextAsync(int userId, long number)
+        public async Task SetValueGetNextAsync(int userId, long number)
         {
             var gameQuery = from cg in dbContext.ConcurrencyGames
                             join g in dbContext.Games on cg.GameId equals g.Id
@@ -34,13 +34,13 @@ namespace Trainings.OpenMpi.Api.Services
                                 Round = r,
                                 Game = cg
                             };
-            var gameData = await gameQuery.Take(2).ToArrayAsync();
+            var gameRoundsData = await gameQuery.Take(2).ToArrayAsync();
 
-            if (!gameData.Any())
+            if (!gameRoundsData.Any())
                 throw new ArgumentException();
 
-            var game = gameData.First().Game;
-            var finishedRound = gameData.First().Round;
+            var game = gameRoundsData.First().Game;
+            var finishedRound = gameRoundsData.First().Round;
 
             await Task.Delay(random.Next(1000, 3000));
 
@@ -50,13 +50,16 @@ namespace Trainings.OpenMpi.Api.Services
             dbContext.Update(finishedRound);
             await dbContext.SaveChangesAsync();
 
-            if (gameData.Length == 1) 
+            if (gameRoundsData.Length == 1) 
             {
                 await CheckIfGameEnded(game.GameId);
-                return null;
+                return;
             }
 
-            return gameData[1].Round.AddCoeff;
+            await hubContext.Clients.All.SetConcurrencyGameState(gameRoundsData[1].Round.AddCoeff);
+
+            var nextRound = gameRoundsData.Last().Round;
+            await hubContext.Clients.User(userId.ToString()).ConcurrencyGameValueReceived(nextRound.AddCoeff);
         }
 
         public override async Task<Game> CreateGameAsync()
@@ -117,11 +120,9 @@ namespace Trainings.OpenMpi.Api.Services
                 gameFinishedLock.Release();
             }
 
-            await hubContext.Clients.All.GameEnded(new GameEventMessage() 
-            {
-                GameId = gameId,
-                GameType = GameType.Concurrency,
-            });
+            await hubContext.Clients.All.GameEnded();
+
+            Console.WriteLine("Concurrency Game Ended Message Sent");
         }
 
         public override async Task StartGameAsync(Game game) 

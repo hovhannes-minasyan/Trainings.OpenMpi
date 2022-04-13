@@ -25,5 +25,12 @@ namespace Trainings.OpenMpi.Api.Controllers
             await gameService.StartGameAsync(GameType.Concurrency);
             return Ok();
         }
+
+        [HttpGet]
+        public async Task<ActionResult> GetAsync()
+        {
+            var result = await gameService.GetAllAsync();
+            return Ok(result);
+        }
     }
 }

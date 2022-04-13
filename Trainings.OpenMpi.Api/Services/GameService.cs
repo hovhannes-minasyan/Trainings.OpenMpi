@@ -28,6 +28,11 @@ namespace Trainings.OpenMpi.Api.Services
             this.pipelineGameService = pipelineGameService;
         }
 
+        public Task<Game[]> GetAllAsync()
+        {
+            return dbContext.Games.ToArrayAsync();
+        }
+
         public async Task StartGameAsync(GameType gameType)
         {
             var service = gameType switch

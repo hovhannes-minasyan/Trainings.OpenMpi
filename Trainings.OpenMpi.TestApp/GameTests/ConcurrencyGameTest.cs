@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace Trainings.OpenMpi.TestApp
+namespace Trainings.OpenMpi.TestApp.GameTests
 {
     public class ConcurrencyGameTest
     {
@@ -15,14 +15,17 @@ namespace Trainings.OpenMpi.TestApp
             }
 
             foreach (var data in playerData)
-            {
                 await data.ConnectAsync();
-            }
 
             for (int i = 0; i < clientCount; i++)
             {
                 collection.Take();
             }
+
+            foreach (var data in playerData)
+                await data.DisconnectAsync();
+
+            Console.WriteLine();
         }
     }
 }
