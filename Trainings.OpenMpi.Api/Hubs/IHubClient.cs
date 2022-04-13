@@ -6,8 +6,10 @@ namespace Trainings.OpenMpi.Api.Hubs
     {
         Task SetConcurrencyGameState(long data);
 
-        Task GameStarted(GameStartedMessage gameStartedMessage);
+        Task GameStarted(GameEventMessage gameStartedMessage);
 
         Task ConcurrencyGameValueReceived(long value);
+
+        Task GameEnded(GameEventMessage gameStartedMessage);
     }
 }

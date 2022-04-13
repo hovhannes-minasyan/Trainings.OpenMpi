@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Trainings.OpenMpi.Api.Hubs;
+using Trainings.OpenMpi.Common;
 using Trainings.OpenMpi.Common.Enums;
 using Trainings.OpenMpi.Dal;
 using Trainings.OpenMpi.Dal.Entities;
@@ -7,14 +10,17 @@ namespace Trainings.OpenMpi.Api.Services
 {
     public class ConcurrencyGameService
     {
+        private static SemaphoreSlim gameFinishedLock = new(1);
         private readonly ConnectionStorage connectionStorage;
         private readonly TrainingMpiDbContext dbContext;
+        private readonly IHubContext<GameHub, IHubClient> hubContext;
         private static readonly Random random = new Random();
 
-        public ConcurrencyGameService(ConnectionStorage connectionStorage, TrainingMpiDbContext dbContext)
+        public ConcurrencyGameService(ConnectionStorage connectionStorage, TrainingMpiDbContext dbContext, IHubContext<GameHub, IHubClient> hubContext)
         {
             this.connectionStorage = connectionStorage;
             this.dbContext = dbContext;
+            this.hubContext = hubContext;
         }
 
         public async Task<long?> SetValueGetNextAsync(int userId, long number)
@@ -46,8 +52,11 @@ namespace Trainings.OpenMpi.Api.Services
             dbContext.Update(finishedRound);
             await dbContext.SaveChangesAsync();
 
-            if (gameData.Length == 1)
+            if (gameData.Length == 1) 
+            {
+                await CheckIfGameEnded(game.GameId);
                 return null;
+            }
 
             return gameData[1].Round.AddCoeff;
         }
@@ -85,6 +94,36 @@ namespace Trainings.OpenMpi.Api.Services
                 UserId = playerId,
                 OrderIndex = i + 1,
             }).ToList();
+        }
+
+        private async Task CheckIfGameEnded(int gameId)
+        {
+            await gameFinishedLock.WaitAsync();
+            try
+            {
+                var count = await dbContext.ConcurrencyGameRounds.CountAsync(a => a.ConcurrencyGameId == gameId && !a.IsFinished);
+
+                if (count > 0)
+                    return;
+
+                var game = await dbContext.Games.FindAsync(gameId);
+                if (!game.IsActive)
+                    return;
+
+                game.IsActive = false;
+                dbContext.Update(game);
+                await dbContext.SaveChangesAsync();
+            }
+            finally
+            {
+                gameFinishedLock.Release();
+            }
+
+            await hubContext.Clients.All.GameEnded(new GameEventMessage() 
+            {
+                GameId = gameId,
+                GameType = GameType.Concurrency,
+            });
         }
     }
 }

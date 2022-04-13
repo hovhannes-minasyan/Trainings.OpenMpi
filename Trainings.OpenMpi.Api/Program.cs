@@ -44,7 +44,6 @@ builder.Services.AddAuthentication(opt =>
 })
 .AddScheme<AuthenticationSchemeOptions, ClientBasicAuthenticationHandler>(AuthenticationSchemes.Basic.ToString(), _ => { });
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

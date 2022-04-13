@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
+using System.Collections.Concurrent;
 using System.Text;
 using Trainings.OpenMpi.Common;
 
@@ -6,11 +7,15 @@ namespace Trainings.OpenMpi.TestApp
 {
     public class PlayerConcurrencyGame
     {
+        private int id;
+        private readonly BlockingCollection<int> collection;
         private long number;
         private HubConnection connection;
 
-        public PlayerConcurrencyGame(int i)
+        public PlayerConcurrencyGame(int i, BlockingCollection<int> collection)
         {
+            id = i;
+            this.collection = collection;
             var headerValue = $"player{i}:player{i}";
             var bytes = Encoding.UTF8.GetBytes(headerValue);
             var header = Convert.ToBase64String(bytes);
@@ -25,8 +30,9 @@ namespace Trainings.OpenMpi.TestApp
 
 
             connection.On<long>("SetConcurrencyGameState", SetConcurrencyGameState);
-            connection.On<GameStartedMessage>("GameStarted", GameStarted);
+            connection.On<GameEventMessage>("GameStarted", GameStarted);
             connection.On<long>("ConcurrencyGameValueReceived", ConcurrencyGameValueReceived);
+            connection.On("GameEnded", GameEnded);
         }
 
         public Task ConnectAsync()
@@ -36,17 +42,25 @@ namespace Trainings.OpenMpi.TestApp
 
         private void SetConcurrencyGameState(long number)
         {
+            Console.WriteLine($"{id}: Number changed to {number}");
             this.number = number;
         }
 
-        private void GameStarted(GameStartedMessage gameStartedMessage)
+        private void GameStarted(GameEventMessage gameStartedMessage)
         {
+            Console.WriteLine($"{id}: Game Started");
+        }
 
+        private void GameEnded() 
+        {
+            collection.Add(id);
         }
 
         private async Task ConcurrencyGameValueReceived(long value)
         {
+            Console.WriteLine($"{id}: Sending Starts");
             await Task.Delay(3000);
+            Console.WriteLine($"{id}:Sending {number + value}");
             await connection.SendAsync("SetConcurrencyGameValue", number + value);
         }
     }

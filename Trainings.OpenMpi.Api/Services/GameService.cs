@@ -29,11 +29,13 @@ namespace Trainings.OpenMpi.Api.Services
                 _ => throw new ArgumentException(),
             };
 
-            await hubContext.Clients.All.GameStarted(new GameStartedMessage()
+            await hubContext.Clients.All.GameStarted(new GameEventMessage()
             {
                 GameId = game.Id,
                 GameType = gameType,
             });
+
+            await SendStartupDataAsync(game);
         }
 
         public async Task SendStartupDataAsync(Game game)

@@ -7,7 +7,7 @@ Console.WriteLine("Hello, World!");
 while (true)
 {
     Console.WriteLine("Choose Operation");
-    Console.WriteLine("1. Connect to hub");
+    Console.WriteLine("1. Concurrency Game Test");
     Console.WriteLine("2. Post a game");
     var result = int.Parse(Console.ReadLine() ?? "0");
     if (result == 0)
@@ -15,8 +15,9 @@ while (true)
 
     if (result == 1)
     {
-        var hubTest = new HubTest();
-        hubTest.ConnectAsync().Wait();
+        var gameTest = new ConcurrencyGameTest();
+        gameTest.StartAsync().Wait();
+        Console.ReadLine();
     }
     else if (result == 2)
     {

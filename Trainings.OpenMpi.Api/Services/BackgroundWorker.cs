@@ -10,7 +10,7 @@
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            await Task.Delay(0, cancellationToken); // Use this to actually start the background task
+            await Task.Delay(1, cancellationToken); // Use this to actually start the background task
             _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             while (cancellationToken.IsCancellationRequested == false)
             {

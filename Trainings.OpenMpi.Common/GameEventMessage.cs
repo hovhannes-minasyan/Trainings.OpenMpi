@@ -2,7 +2,7 @@
 
 namespace Trainings.OpenMpi.Common
 {
-    public class GameStartedMessage
+    public class GameEventMessage
     {
         public int GameId { get; set; }
 
