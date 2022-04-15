@@ -20,9 +20,9 @@ namespace Trainings.OpenMpi.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> StartGameAsync()
+        public async Task<ActionResult> StartGameAsync(GameType gameType)
         {
-            await gameService.StartGameAsync(GameType.Concurrency);
+            await gameService.StartGameAsync(gameType);
             return Ok();
         }
 

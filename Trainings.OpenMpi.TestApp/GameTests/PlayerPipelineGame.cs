@@ -64,15 +64,17 @@ namespace Trainings.OpenMpi.TestApp.GameTests
 
         private async Task ResubmitPipelineStep() 
         {
+            Console.WriteLine("Resubmit Request");
             await connection.SendAsync("CompletePipelineGameStep", currentData);
         }
 
         private async Task ReceivePipelineStep(PipelineStepMessage pipelineStepMessage) 
         {
+            Console.WriteLine("Step Received");
             currentData += pipelineStepMessage.Data;
 
             await Task.Delay(random.Next(1000, 5000));
-
+            Console.WriteLine($"Sending message CompletePipelineGameStep - {currentData}");
             await connection.SendAsync("CompletePipelineGameStep", currentData);
         }
     }

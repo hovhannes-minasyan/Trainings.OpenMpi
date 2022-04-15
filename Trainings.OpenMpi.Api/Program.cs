@@ -1,6 +1,7 @@
 using inOne.LoyaltySystem.Web.Api.StartupFilters;
 using Microsoft.AspNetCore.Authentication;
 using System.Net;
+using System.Text.Json.Serialization;
 using Trainings.OpenMpi.Api.Authentication;
 using Trainings.OpenMpi.Api.Hubs;
 using Trainings.OpenMpi.Api.Services;
@@ -19,7 +20,10 @@ builder.Host.ConfigureHostConfiguration(hostConfig =>
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

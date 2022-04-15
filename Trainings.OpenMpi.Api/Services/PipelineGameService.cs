@@ -43,6 +43,8 @@ namespace Trainings.OpenMpi.Api.Services
 
         public override async Task StartGameAsync(Game game)
         {
+            connectionStorage.RedefineNeighbors();
+
             var firstPlayer = connectionStorage.GetIds().Min();
             var step = await dbContext.PipelineSteps.FirstOrDefaultAsync(s => s.UserId == firstPlayer && s.PipelineGameId == game.Id);            
             await SendTaskTo(step, random.Next(1000,10000));
@@ -97,19 +99,30 @@ namespace Trainings.OpenMpi.Api.Services
 
                 await dbContext.SaveChangesAsync();
 
+                if(nextPlayer == null && game.PipelineSteps.Count(a => a.State != PipelineState.Free) == 0) 
+                {
+                    if(prevPlayer != null || game.RoundsLeft == 0)
+                        await hubContext.Clients.All.GameEnded();
+                }
+
+
                 if (prevPlayer == null)
                 {
                     if (game.RoundsLeft == 0)
                         return;
 
                     game.RoundsLeft--;
+                    await dbContext.SaveChangesAsync();
 
                     await SendTaskTo(myStep, random.Next(1000, 10000));
+                    myStep.State = PipelineState.Working;
+
+                    await dbContext.SaveChangesAsync();
                 }
                 else
                 {
                     var prevStep = game.PipelineSteps.First(a => a.UserId == prevPlayer);
-                    if (prevStep.State == PipelineState.Working)
+                    if (prevStep.State != PipelineState.WaitingToSend)
                         return;
 
                     await hubContext.Clients.User(prevPlayer.ToString()).ResubmitPipelineStep();
@@ -123,6 +136,7 @@ namespace Trainings.OpenMpi.Api.Services
 
         private async Task SendTaskTo(PipelineStep step, decimal data) 
         {
+            Console.WriteLine($"Sending data to {step.UserId}");
             await hubContext.Clients
                 .User(step.UserId.ToString())
                 .ReceivePipelineStep(new PipelineStepMessage 
