@@ -4,9 +4,7 @@ namespace Trainings.OpenMpi.Api.Services
 {
     public class TasksCollection
     {
-        private readonly BlockingCollection<Task> _tasks;
-
-        public TasksCollection() => _tasks = new BlockingCollection<Task>();
+        private readonly BlockingCollection<Task> _tasks = new BlockingCollection<Task>();
 
         public void Enqueue(Task settings) => _tasks.Add(settings);
 
