@@ -8,12 +8,8 @@ namespace Trainings.OpenMpi.Dal.Extensions
     {
         public static IServiceCollection AddTrainingDb(this IServiceCollection services)
         {
-            var provider = services.BuildServiceProvider();
-            var configuration = provider.GetService<IConfiguration>();
-
+            var configuration = services.BuildServiceProvider().GetService<IConfiguration>();
             var connectionString = configuration.GetConnectionString("TrainingMpiDbContext");
-
-            Console.WriteLine($"CONNECTION STRING = {connectionString}");
 
             services.AddDbContext<TrainingMpiDbContext>(options =>
                 options.UseNpgsql(connectionString,

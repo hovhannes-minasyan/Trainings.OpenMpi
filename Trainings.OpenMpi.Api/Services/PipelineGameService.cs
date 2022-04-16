@@ -96,7 +96,6 @@ namespace Trainings.OpenMpi.Api.Services
                 }
 
                 myStep.State = PipelineState.Free;
-
                 await dbContext.SaveChangesAsync();
 
                 if(nextPlayer == null && game.PipelineSteps.Count(a => a.State != PipelineState.Free) == 0) 
@@ -104,7 +103,6 @@ namespace Trainings.OpenMpi.Api.Services
                     if(prevPlayer != null || game.RoundsLeft == 0)
                         await hubContext.Clients.All.GameEnded();
                 }
-
 
                 if (prevPlayer == null)
                 {
@@ -134,10 +132,9 @@ namespace Trainings.OpenMpi.Api.Services
             }            
         }
 
-        private async Task SendTaskTo(PipelineStep step, decimal data) 
+        private Task SendTaskTo(PipelineStep step, decimal data) 
         {
-            Console.WriteLine($"Sending data to {step.UserId}");
-            await hubContext.Clients
+            return hubContext.Clients
                 .User(step.UserId.ToString())
                 .ReceivePipelineStep(new PipelineStepMessage 
                 {

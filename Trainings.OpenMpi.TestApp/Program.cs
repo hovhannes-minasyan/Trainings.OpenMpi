@@ -8,9 +8,14 @@ Console.WriteLine("Hello, World!");
 while (true)
 {
     Console.WriteLine("Choose Operation");
-    Console.WriteLine("1. Concurrency Game Test");
-    Console.WriteLine("2. Post a game");
-    var result = int.Parse(Console.ReadLine() ?? "0");
+    Console.WriteLine("1. Concurrency Game");
+    Console.WriteLine("2. Pipeline game");
+    var data = Console.ReadLine();
+    var isSuccess = int.TryParse(data ?? "0", out var result);
+
+    if (!isSuccess && data.ToLower() == "exit")
+        break;
+
     if (result == 0)
         break;
 
