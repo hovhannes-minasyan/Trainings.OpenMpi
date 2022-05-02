@@ -27,18 +27,19 @@ builder.Services
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddTrainingDb();
-builder.Services.AddTransient<IStartupFilter, TempStartupFilter>();
 builder.Services.AddSignalR();
 
+builder.Services.AddTransient<IStartupFilter, TempStartupFilter>();
+builder.Services.AddTrainingDb();
 builder.Services.AddSingleton<ConnectionStorage>();
 
 builder.Services.AddScoped<GameService>();
-builder.Services.AddScoped<ConcurrencyGameService>();
+builder.Services.AddScoped<NewGameService>();
 builder.Services.AddScoped<PipelineGameService>();
+builder.Services.AddScoped<ConcurrencyGameService>();
 
-builder.Services.AddHostedService<BackgroundWorker>();
 builder.Services.AddSingleton<TasksCollection>();
+builder.Services.AddHostedService<BackgroundWorker>();
 
 builder.Services.AddAuthentication(opt =>
 {
